@@ -275,9 +275,9 @@ export default function setupAuthEndpoints(app: MathigonStudioApp) {
 
   app.post('/login', async (req, res) => {
     const response = await login(req);
-    //if (response.user) req.session.auth!.user = response.user.id;
+    // if (response.user) req.session.auth!.user = response.user.id;
     // need to add jwt token to the response
-    const token = jwt.sign(response.user,process.env.ACCESS_TOKEN_SECRET,{expiresIn : '1y'})
+    const token = jwt.sign(response.user,process.env.ACCESS_TOKEN_SECRET||'test1',{expiresIn : '1y'})
 
     res.cookie('jwt', token ,{
       httpOnly : true,
