@@ -67,8 +67,6 @@ async function login(req: express.Request) {
 
   const user = await User.lookup(req.body.email);
 
-  console.log("user",user)
-
   if (!user || !user.checkPassword(req.body.password.trim())) return {error: 'invalidLogin'};
 
   return {user};
@@ -276,6 +274,8 @@ export default function setupAuthEndpoints(app: MathigonStudioApp) {
 
   app.post('/login', async (req, res) => {
     const response = await login(req);
+    // need to add jwt token to the response
+    console.log("user",response.user)
     if (response.user) req.session.auth!.user = response.user.id;
     redirect(req, res, response, '/dashboard', '/login');
   });
