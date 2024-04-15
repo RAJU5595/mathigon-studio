@@ -3,8 +3,8 @@
   "description": "A platform for creating and hosting interactive, online courses.",
   "version": "1.0.0",
   "license": "(MIT AND CC-BY-SA-4.0 AND OFL-1.1)",
-  "repository": "mathigon/studio",
-  "bugs": "https://github.com/mathigon/studio/issues",
+  "repository": "https://github.com/RAJU5595/mathigon-studio.git",
+  "bugs": "https://github.com/RAJU5595/mathigon-studio.git",
   "engines": {
     "node": ">=18"
   },
