@@ -66,6 +66,9 @@ async function login(req: express.Request) {
   if (!req.body.email || !req.body.password) return {error: 'missingParameters'};
 
   const user = await User.lookup(req.body.email);
+
+  console.log("user",user)
+
   if (!user || !user.checkPassword(req.body.password.trim())) return {error: 'invalidLogin'};
 
   return {user};
