@@ -14,6 +14,7 @@ import {CONFIG, loadData, pastDate} from './utilities/utilities';
 import {sendChangeEmailConfirmation, sendEmail, sendPasswordChangedEmail, sendPasswordResetEmail, sendWelcomeEmail} from './utilities/emails';
 import {checkBirthday, normalizeEmail, sanitizeString} from './utilities/validate';
 import {oAuthCallback, oAuthLogin} from './utilities/oauth';
+import jwt, { VerifyErrors } from 'jsonwebtoken';
 
 
 const MESSAGES = loadData('messages') as Record<string, string>;
@@ -274,9 +275,17 @@ export default function setupAuthEndpoints(app: MathigonStudioApp) {
 
   app.post('/login', async (req, res) => {
     const response = await login(req);
+    //if (response.user) req.session.auth!.user = response.user.id;
     // need to add jwt token to the response
-    console.log("user",response.user)
-    if (response.user) req.session.auth!.user = response.user.id;
+    const token = jwt.sign(response.user,process.env.ACCESS_TOKEN_SECRET,{expiresIn : '1y'})
+
+    res.cookie('jwt', token ,{
+      httpOnly : true,
+      maxAge: 365 * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' 
+    })
+
     redirect(req, res, response, '/dashboard', '/login');
   });
 
