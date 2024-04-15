@@ -5,7 +5,7 @@
 
 
 import crypto from 'crypto';
-import express from 'express';
+import express,{Request,Response,NextFunction} from 'express';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import bodyParser from 'body-parser';
@@ -25,6 +25,8 @@ import {AVAILABLE_LOCALES, getCountry, getLocale, isInEU, Locale, LOCALES, trans
 import {User, UserDocument} from './models/user';
 import {CourseAnalytics, LoginAnalytics} from './models/analytics';
 import {ChangeData, Progress} from './models/progress';
+import cors from 'cors';
+import jwt, { VerifyErrors } from 'jsonwebtoken';
 
 
 declare global {
@@ -58,6 +60,30 @@ const SESSION_COOKIE = {
   maxAge: 1000 * 60 * 60 * 24 * 60  // Two months, in ms
 };
 
+function verifyToken(req: Request, res: Response, next: NextFunction) {
+  // Get token from header
+  const token = req.cookies.jwt;
+
+  // Check if token is present
+  if (!token) {
+      return res.status(401).json({ error: 'Access denied. Token not provided.' });
+  }
+
+  try {
+      // Verify token
+      jwt.verify(token, 'test1', (err: VerifyErrors | null, decoded: any) => {
+          if (err) {
+              throw err;
+          }
+          req.user = decoded.user;
+          next();
+      });
+  } catch (error) {
+      res.status(400).json({ error: 'Invalid token' });
+  }
+}
+
+
 
 // -----------------------------------------------------------------------------
 // Express App Setup
@@ -71,6 +97,14 @@ export class MathigonStudioApp {
     app.set('trust_proxy', true);
     app.set('views', [PROJECT_DIR + '/server/templates', __dirname + '/templates']);
     app.set('view engine', 'pug');
+    app.use((req, res, next) => {
+      if (req.originalUrl === '/' || req.originalUrl == '/index.html') {
+          return next();
+      }
+      cors()(req, res, next);
+    });
+    app.use(cookieParser())
+    app.use(verifyToken);
     if (ENV === 'development') app.set('json spaces', 2);
     app.disable('x-powered-by');
   }
