@@ -276,20 +276,22 @@ export default function setupAuthEndpoints(app: MathigonStudioApp) {
   app.post('/login', async (req, res) => {
     const response = await login(req);
     if (response.user) req.session.auth!.user = response.user.id;
-    // need to add jwt token to the response
-    const token = jwt.sign(response.user,'test1',{expiresIn : '1y'})
-
+    // need to add jwt token to the cookies
+    const token = jwt.sign({name : response.user?.fullName},'test1',{expiresIn : '1y'})
     res.cookie('jwt', token ,{
       httpOnly : true,
       maxAge: 365 * 24 * 60 * 60 * 1000,
       sameSite: 'strict' 
     })
-
     redirect(req, res, response, '/dashboard', '/login');
   });
 
   app.get('/logout', (req, res) => {
     delete req.session.auth!.user;
+    res.cookie('jwt', '' ,{
+      httpOnly : true,
+      maxAge: 0
+    })
     req.session.save(() => res.redirect('back'));
   });
 

@@ -61,29 +61,45 @@ const SESSION_COOKIE = {
 };
 
 function verifyToken(req: Request, res: Response, next: NextFunction) {
-  // Get token from header
-  const token = req.cookies.jwt;
-
-  // Check if token is present
-  if (!token) {
-      return res.status(401).json({ error: 'Access denied. Token not provided.' });
+  const bypassExtensions = ['.js', '.css', '.png', '.svg','.mp3','.jpg'];
+  const whitelistUrls = ['/','/login','/signup','/demo','/forgot','/signup?xhr=1','/course/real-numbers-tenth/intro','/course/real-numbers-tenth/irrational',
+    '/course/real-numbers-tenth/the-fundamental-theorem-of-arithmetic','/course/real-numbers-tenth/summary','/course/polynomials/polynomials',
+    '/course/polynomials/zeroes_relationship','/course/polynomials/zeroes_polynomials','/course/polynomials/polynomials_division',
+    '/course/triangles/introduction','/course/triangles/similarity','/course/triangles/properties',' /course/triangles/similar-triangles','/course/triangles/midsegments','/course/triangles/pythagoras','/course/triangles/congruence',
+    '/course/trigonometry/trigonometry','/course/trigonometry/trig-complimentary','/course/trigonometry/trigonometry-0','/course/trigonometry/trigonometric-identities','/course/trigonometry/trigonometric-ratios','/course/trigonometry/applications-of-trigonometry','/course/trigonometry/trigonometric-ratios-of-some-specific-angles',
+    '/course/Euclidean_Geometry/introduction','/course/Euclidean_Geometry/euclidian-axioms','/course/Euclidean_Geometry/definitions','/course/Euclidean_Geometry/axioms-and-postulate-difference','/course/Euclidean_Geometry/euclids-postulates','/course/Euclidean_Geometry/construction'
+  ];
+  const bypassRequest =bypassExtensions.some(extension => req.originalUrl.endsWith(extension));
+  const whitelistReq = whitelistUrls.includes(req.originalUrl);
+  const hasExtension = req.originalUrl.includes('.');
+  //console.log("url",req.originalUrl)
+  if(hasExtension && bypassRequest){
+    return next()
   }
-
-  try {
-      // Verify token
+  if(!hasExtension && whitelistReq){
+    return next()
+  }else{
+    const token = req.cookies.jwt;
+    if (!token) {
+      return res.redirect('/login');
+    }
+    try {
       jwt.verify(token, 'test1', (err: VerifyErrors | null, decoded: any) => {
           if (err) {
-              throw err;
+            return res.redirect('/login');
           }
-          req.user = decoded.user;
-          next();
+          if(decoded.name){
+            next()
+          }else{
+            return res.redirect('/login');
+          }
+          //next()
       });
-  } catch (error) {
-      res.status(400).json({ error: 'Invalid token' });
+    } catch (error) {
+      return res.redirect('/login');
+    }
   }
 }
-
-
 
 // -----------------------------------------------------------------------------
 // Express App Setup
@@ -97,18 +113,12 @@ export class MathigonStudioApp {
     app.set('trust_proxy', true);
     app.set('views', [PROJECT_DIR + '/server/templates', __dirname + '/templates']);
     app.set('view engine', 'pug');
-    app.use((req, res, next) => {
-      if (req.originalUrl === '/' || req.originalUrl == '/index.html') {
-          return next();
-      }
-      cors()(req, res, next);
-    });
     app.use(cookieParser())
     app.use(verifyToken);
+    app.use(cors());
     if (ENV === 'development') app.set('json spaces', 2);
     app.disable('x-powered-by');
   }
-
 
   use(fn: (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<void>) {
     this.app.use(fn);
@@ -290,7 +300,7 @@ export class MathigonStudioApp {
         req.tmpUser = req.cookies.tmp_user;
       } else {
         req.tmpUser = crypto.randomBytes(16).toString('hex');
-        res.cookie('tmp_user', req.tmpUser, SESSION_COOKIE);
+       // res.cookie('tmp_user', req.tmpUser, SESSION_COOKIE);
       }
 
       if (req.user) await LoginAnalytics.ping(req.user);
