@@ -1,7 +1,7 @@
 {
   "name": "test-studioapp",
   "description": "A platform for creating and hosting interactive, online courses.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "(MIT AND CC-BY-SA-4.0 AND OFL-1.1)",
   "repository": "https://github.com/RAJU5595/mathigon-studio.git",
   "bugs": "https://github.com/RAJU5595/mathigon-studio.git",
