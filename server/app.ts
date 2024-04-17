@@ -27,6 +27,7 @@ import {CourseAnalytics, LoginAnalytics} from './models/analytics';
 import {ChangeData, Progress} from './models/progress';
 import cors from 'cors';
 import jwt, { VerifyErrors } from 'jsonwebtoken';
+import 'dotenv/config'
 
 
 declare global {
